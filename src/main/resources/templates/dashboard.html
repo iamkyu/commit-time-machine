@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head lang="en">
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <title>Commit Dashboard</title>
+    <link href="/css/bootstrap.css" rel="stylesheet" />
+    <link href="/css/dashboard.css" rel="stylesheet" />
+    <link href="/css/jquery-ui.css" rel="stylesheet" />
+</head>
+
+<body>
+<nav class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#">Commit Time-machine</a>
+        </div>
+        <div id="navbar" class="">
+            <form class="navbar-form navbar-right">
+                <input type="text" class="form-control" id="datepicker" placeholder="Search..." />
+            </form>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid">
+    <div id='ajax_loader' style="position: fixed; left: 50%; top: 50%; display: none;">
+        <img src="/css/images/ajax-loader.gif"/>
+    </div>
+    <div class="row">
+        <div class="main">
+            <div class="table-responsive">
+                <table class="table table-striped" id="commit-list">
+                    <thead>
+                    <tr>
+                        <th>Commit Message</th>
+                        <th>Repository</th>
+                        <th>Date</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/js/jquery-1.12.4.js"></script>
+<script src="/js/jquery-ui-1.12.1.js"></script>
+<script src="/js/bootstrap.min.js"></script>
+<script type="text/javascript">
+$(function () {
+    $("#datepicker").datepicker({
+        dateFormat: "yy-mm-dd",
+        onSelect: function(dateText, inst) {
+            getCommits(dateText);
+        }
+    });
+
+    if(sessionStorage.getItem("searchDate")) {
+        $("#datepicker").datepicker("setDate", sessionStorage.getItem("searchDate"));
+    } else {
+        $("#datepicker").datepicker("setDate", new Date());
+    }
+    $(".ui-datepicker-current-day").click();
+
+
+    function getCommits(searchDate) {
+
+        $("#ajax_loader").show();
+        var jqxhr = $.get("/commit-log/list", {date: searchDate});
+        jqxhr.success(function (result) {
+            $("#commit-list > tbody").html("");
+
+            if (result.total_count > 0) {
+                $.each(result.items, function(k, v) {
+                    var tr = document.createElement('tr');
+                    var td = document.createElement('td');
+                    var a = document.createElement('a');
+
+                    a.setAttribute('href', v.html_url);
+                    a.innerText = v.commit.message;
+                    td.appendChild(a);
+                    tr.appendChild(td);
+
+                    a = document.createElement('a');
+                    a.setAttribute('href', v.repository.html_url);
+                    a.innerText = v.repository.name;
+                    td = document.createElement('td');
+                    td.appendChild(a);
+                    tr.appendChild(td);
+
+                    td = document.createElement('td');
+                    td.innerText = v.commit.committer.date;
+                    tr.appendChild(td);
+                    $("#commit-list").append(tr);
+                });
+            } else {
+                var tr = document.createElement('tr');
+                var td = document.createElement('td');
+                td.colSpan = 3;
+                td.innerText = "No commit this day";
+                tr.appendChild(td);
+                $("#commit-list").append(tr);
+            }
+        });
+
+        jqxhr.complete(function () {
+            sessionStorage.setItem("searchDate", searchDate);
+            $("#ajax_loader").hide();
+        });
+    };
+});
+
+</script>
+</body>
+</html>
