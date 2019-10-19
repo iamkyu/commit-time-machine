@@ -1,0 +1,18 @@
+hosts:
+  github:
+    github-api:
+      connection-timeout: 1000
+      socket-timeout: 1000
+
+---
+spring:
+  profiles:
+    - local
+
+hosts:
+  github:
+    github-api:
+      protocol: https
+      url: api.github.com
+      headers:
+        Accept: application/vnd.github.cloak-preview

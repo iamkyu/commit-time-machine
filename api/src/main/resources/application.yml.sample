@@ -1,0 +1,5 @@
+spring:
+  profiles:
+    include:
+      - github-client
+    active : local

@@ -1,0 +1,7 @@
+dependencies {
+    implementation project(':client:github')
+
+    api "org.springframework.boot:spring-boot-devtools"
+    api "org.springframework.boot:spring-boot-starter-thymeleaf"
+    api 'org.springframework.boot:spring-boot-starter-webflux'
+}

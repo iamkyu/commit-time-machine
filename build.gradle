@@ -1,36 +1,82 @@
 buildscript {
-    ext {
-        springBootVersion = '1.5.4.RELEASE'
-    }
     repositories {
         mavenCentral()
+        maven { url "https://plugins.gradle.org/m2/" }
     }
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
     }
 }
 
-apply plugin: 'java'
-apply plugin: 'eclipse'
-apply plugin: 'org.springframework.boot'
+configure(subprojects.findAll {it.name != 'common'}) {
+    apply plugin: 'java'
+    apply plugin: 'java-library'
+    apply plugin: 'org.springframework.boot'
+    apply plugin: 'io.spring.dependency-management'
 
-version = '0.0.1-SNAPSHOT'
-sourceCompatibility = 1.8
+    group = 'io.iamkyu'
+    version = "${releaseVersion}"
 
-repositories {
-    mavenCentral()
+    sourceCompatibility = '1.8'
+
+    repositories {
+        mavenCentral()
+        maven { url "http://maven.imagej.net/content/repositories/public"}
+        maven { url "http://nexus.woowa.in/content/groups/public/" }
+    }
+
+    dependencyManagement {
+        imports {
+            mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+        }
+    }
+
+    dependencies {
+        compileOnly 'org.projectlombok:lombok'
+        annotationProcessor 'org.projectlombok:lombok'
+        testCompileOnly 'org.projectlombok:lombok'
+        testAnnotationProcessor 'org.projectlombok:lombok'
+        annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+        testImplementation 'org.junit.jupiter:junit-jupiter-api'
+        testImplementation 'org.junit.jupiter:junit-jupiter-params'
+        testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+    }
+
+    configurations {
+        all*.exclude group: 'commons-logging', module: 'commons-logging'
+        all*.exclude group: 'log4j', module: 'log4j'
+        all*.exclude group: 'junit', module: 'junit'
+    }
+
+    test {
+        useJUnitPlatform {
+            excludeTags 'develop'
+            includeEngines 'junit-jupiter'
+        }
+    }
+
+    task unitTest(type: Test, group: 'verification') {
+        useJUnitPlatform {
+            excludeTags 'context-test', 'develop'
+            includeEngines 'junit-jupiter'
+        }
+    }
 }
 
-
-dependencies {
-    compile 'org.springframework.boot:spring-boot-starter-web'
-    compile 'org.apache.httpcomponents:httpasyncclient'
-    compile 'org.jsoup:jsoup:1.10.3'
-    compile "org.springframework.boot:spring-boot-starter-thymeleaf"
-    compile "org.springframework.boot:spring-boot-devtools"
-    compile 'com.fasterxml.jackson.core:jackson-databind:2.8.5'
-    compile 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.7.3'
-
-    compile 'org.projectlombok:lombok:1.16.16'
-    testCompile 'org.springframework.boot:spring-boot-starter-test'
-}
+//dependencies {
+//    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+//
+//    compile "org.springframework.boot:spring-boot-starter-thymeleaf"
+//    compile "org.springframework.boot:spring-boot-devtools"
+//
+//    testImplementation('org.springframework.boot:spring-boot-starter-test') {
+//        exclude module: 'junit'
+//    }
+//
+//    testImplementation 'io.projectreactor:reactor-test'
+//    testImplementation 'org.junit.jupiter:junit-jupiter-api'
+//    testImplementation 'org.junit.jupiter:junit-jupiter-params'
+//    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+//}

@@ -1,0 +1,6 @@
+rootProject.name = 'commit-time-machine'
+
+include 'api'
+include 'client:core'
+include 'client:github'
+
